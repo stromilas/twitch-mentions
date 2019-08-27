@@ -15,7 +15,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		const notificationConfig = {
 			type: 'basic',
 			title: request.data.author,
-			message: request.data.message,
+			message: request.data.text,
 			iconUrl: 'images/twitchmentions_48.png'
 		};
 		const uniqueString = "" + new Date().getUTCMilliseconds();

@@ -10,12 +10,12 @@ setInterval(function() {
 	if(document.URL != url) {
 		url = document.URL;
 		console.log('url changed - loading chat');
-		loadChat(selector, processMessages);
+		loadChat(selector, processChat);
 	}
 }, URL_CHECK_INTERVAL);
 
 
-function processMessages(chat) {
+function processChat(chat) {
 	const username = "Cactulus".toLowerCase();
 	let lastMessage = document.createElement('div');
 	setInterval(function() {
@@ -27,30 +27,74 @@ function processMessages(chat) {
 			if(length > lastMessageIndex) {
 				if(lastMessageIndex == -1) lastMessageIndex = 0;
 
-				for(let i = lastMessageIndex + 1; i <= length; i++) {
-					if(messageArray[i].innerText.includes(':')) {
-						const message = messageArray[i].innerText.split(':');
-						const author = message[0];
-						const text = message[1].toLowerCase();
-						if(text.includes(username)) {
-							console.log(messageArray[i].innerHTML);
-							const data = {
-								author: author,
-								message: text
-							};
-							chrome.runtime.sendMessage({type: 'notification', data: data});
+				try {
+					for(let i = lastMessageIndex + 1; i <= length; i++) {
+						const message = processMessage(messageArray[i]);
+						console.log(message.text);
+						if(message) {
+							if(message.text.includes(username)) {
+								chrome.runtime.sendMessage({type: 'notification', data: message});
+							}
 						}
 					}
+				}
+				catch(err) {
+					// continue
 				}
 			}
 			lastMessage = messageArray[length];
 		}
 		catch(err) {
 			console.log(err);
-			lastMessage = document.createElement('div');
 		}
 	}, CHAT_PROCESS_INTERVAL);
 }
+
+function processMessage(element) {
+	const message = element.children;
+	const textSelector = 'chat-message-text';
+	const mentionSelector = 'chat-message-mention';
+	const emoteSelector = 'span[data-a-target="emote-name"]';
+	const authorSelector = 'span[data-a-target="chat-message-username"]';
+	let 	processedText = '';
+	let   messageAuthor = '';
+
+	try {
+		for(let i = 0; i < message.length; i++) {
+
+			if(message[i].getAttribute('data-a-target') === textSelector ||
+				 message[i].getAttribute('data-a-target') === mentionSelector) {
+				const text = message[i].innerText;
+				processedText += text;
+			}
+			else if(message[i].querySelector(emoteSelector)) {
+				const emoteWrapper = message[i].querySelector(emoteSelector);
+				if(emoteWrapper.querySelector('img')) {
+					const emote = emoteWrapper.querySelector('img').getAttribute('alt');
+					processedText += emote;
+				}
+			}
+			else if(message[i].querySelector(authorSelector)) {
+				messageAuthor = message[i].querySelector(authorSelector).innerText;
+			}
+		}
+	}
+	catch(err) {
+		console.log(err);
+	}
+
+	if(processedText && messageAuthor) {
+		return {
+			author: messageAuthor,
+			text: processedText
+		}
+	}
+	else {
+		return null;
+	}
+}
+
+
 
 function loadChat(selector, callback) {
 	window.setTimeout(function() {
