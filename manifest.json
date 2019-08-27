@@ -1,6 +1,6 @@
 {
 	"name": "Twitch Mentions",
-	"version": "0.2",
+	"version": "0.3",
 	"description": "Get notified when someone mentions you in twitch chat",
 	"permissions": ["declarativeContent", "activeTab", "notifications", "tabs", "storage"],
 	"content_scripts": [
