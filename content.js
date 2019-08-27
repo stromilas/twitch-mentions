@@ -8,7 +8,7 @@ let isEnabled = true;
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	if(request.type === 'quote_listener') {
-		isEnabled = request.enabled;
+		isEnabled = request.isEnabled;
 	}
 });
 
@@ -24,6 +24,7 @@ setInterval(function() {
 function processChat(chat) {
 	const username = "Cactulus".toLowerCase();
 	let lastMessage = document.createElement('div');
+
 	setInterval(function() {
 		if(isEnabled) {
 			try {
@@ -54,6 +55,11 @@ function processChat(chat) {
 			catch(err) {
 				console.log(err);
 			}
+		}
+		else {
+			lastMessage = chat.childNodes[chat.childNodes.length - 2] ?
+										chat.childNodes[chat.childNodes.length - 2] :
+										document.createElement('div');
 		}
 	}, CHAT_PROCESS_INTERVAL);
 }

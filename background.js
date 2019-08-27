@@ -27,7 +27,6 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 setInterval(function() {
 	chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
 		const currentId = tab[0] ? tab[0].id : -1;
-		console.log(currentId);
 		chrome.tabs.query({}, function(tabs) {
 			for(tab of tabs) {
 				if(tab.url.includes('www.twitch.tv')){
