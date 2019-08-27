@@ -3,26 +3,32 @@ const CHAT_PROCESS_INTERVAL = 2000;
 const URL_CHECK_INTERVAL = 1000;
 
 const chatSelector = 'div[role="log"]';
-let url = '';
-let isEnabled = true;
+let 	url = '';
+let		isEnabled = true;
+let		username = '';
+
+chrome.storage.sync.get(['username'], function(data) {
+	username = data.username.toLowerCase();
+});
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	if(request.type === 'quote_listener') {
 		isEnabled = request.isEnabled;
+	}
+	else if(request.type === 'username_change') {
+		username = request.username.toLowerCase();
 	}
 });
 
 setInterval(function() {
 	if(document.URL != url) {
 		url = document.URL;
-		console.log('url changed - loading chat');
 		loadChat(chatSelector, processChat);
 	}
 }, URL_CHECK_INTERVAL);
 
 
 function processChat(chat) {
-	const username = "Cactulus".toLowerCase();
 	let lastMessage = document.createElement('div');
 
 	setInterval(function() {
@@ -38,9 +44,8 @@ function processChat(chat) {
 					try {
 						for(let i = lastMessageIndex + 1; i <= length; i++) {
 							const message = processMessage(messageArray[i]);
-							console.log(message.text);
 							if(message) {
-								if(message.text.includes(username)) {
+								if(message.text.toLowerCase().includes(username)) {
 									chrome.runtime.sendMessage({type: 'notification', data: message});
 								}
 							}
