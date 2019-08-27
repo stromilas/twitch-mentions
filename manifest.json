@@ -2,7 +2,7 @@
 	"name": "Twitch Mentions",
 	"version": "0.1",
 	"description": "Get notified when someone mentions you in twitch chat",
-	"permissions": ["declarativeContent", "activeTab", "notifications"],
+	"permissions": ["declarativeContent", "activeTab", "notifications", "tabs"],
 	"content_scripts": [
 		{
 			"matches": [ "*://www.twitch.tv/*",

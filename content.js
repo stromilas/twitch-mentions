@@ -1,6 +1,18 @@
 const selector = 'div[role="log"]';
-console.log('Loading chat');
-loadChat(selector, processMessages);
+
+const CHAT_CHECK_INTERVAL = 1000;
+const CHAT_PROCESS_INTERVAL = 2000;
+const URL_CHECK_INTERVAL = 1000;
+
+let url = '';
+
+setInterval(function() {
+	if(document.URL != url) {
+		url = document.URL;
+		console.log('url changed - loading chat');
+		loadChat(selector, processMessages);
+	}
+}, URL_CHECK_INTERVAL);
 
 
 function processMessages(chat) {
@@ -21,9 +33,7 @@ function processMessages(chat) {
 						const author = message[0];
 						const text = message[1].toLowerCase();
 						if(text.includes(username)) {
-							console.log('Someone quoted you!');
-							console.log(author);
-							console.log(text);
+							console.log(messageArray[i].innerHTML);
 							const data = {
 								author: author,
 								message: text
@@ -39,7 +49,7 @@ function processMessages(chat) {
 			console.log(err);
 			lastMessage = document.createElement('div');
 		}
-	}, 2000);
+	}, CHAT_PROCESS_INTERVAL);
 }
 
 function loadChat(selector, callback) {
@@ -51,5 +61,5 @@ function loadChat(selector, callback) {
 		else {
 			loadChat(selector, callback);
 		}
-	}, 1000);
+	}, CHAT_CHECK_INTERVAL);
 }
