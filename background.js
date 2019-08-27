@@ -23,3 +23,22 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	}
 	sendResponse();
 });
+
+setInterval(function() {
+	chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
+		const currentId = tab[0] ? tab[0].id : -1;
+		console.log(currentId);
+		chrome.tabs.query({}, function(tabs) {
+			for(tab of tabs) {
+				if(tab.url.includes('www.twitch.tv')){
+					if(currentId == tab.id) {
+						chrome.tabs.sendMessage(tab.id, {type: 'quote_listener', isEnabled: false});
+					}
+					else {
+						chrome.tabs.sendMessage(tab.id, {type: 'quote_listener', isEnabled: true});
+					}
+				}
+			}
+		});
+	});
+}, 2000);

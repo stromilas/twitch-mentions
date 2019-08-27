@@ -1,16 +1,22 @@
-const selector = 'div[role="log"]';
-
 const CHAT_CHECK_INTERVAL = 1000;
 const CHAT_PROCESS_INTERVAL = 2000;
 const URL_CHECK_INTERVAL = 1000;
 
+const chatSelector = 'div[role="log"]';
 let url = '';
+let isEnabled = true;
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	if(request.type === 'quote_listener') {
+		isEnabled = request.enabled;
+	}
+});
 
 setInterval(function() {
 	if(document.URL != url) {
 		url = document.URL;
 		console.log('url changed - loading chat');
-		loadChat(selector, processChat);
+		loadChat(chatSelector, processChat);
 	}
 }, URL_CHECK_INTERVAL);
 
@@ -19,33 +25,35 @@ function processChat(chat) {
 	const username = "Cactulus".toLowerCase();
 	let lastMessage = document.createElement('div');
 	setInterval(function() {
-		try {
-			const messageArray = Array.from(chat.childNodes);
-			const length = messageArray.length - 2;
-			let   lastMessageIndex = messageArray.indexOf(lastMessage);
+		if(isEnabled) {
+			try {
+				const messageArray = Array.from(chat.childNodes);
+				const length = messageArray.length - 2;
+				let   lastMessageIndex = messageArray.indexOf(lastMessage);
 
-			if(length > lastMessageIndex) {
-				if(lastMessageIndex == -1) lastMessageIndex = 0;
+				if(length > lastMessageIndex) {
+					if(lastMessageIndex == -1) lastMessageIndex = 0;
 
-				try {
-					for(let i = lastMessageIndex + 1; i <= length; i++) {
-						const message = processMessage(messageArray[i]);
-						console.log(message.text);
-						if(message) {
-							if(message.text.includes(username)) {
-								chrome.runtime.sendMessage({type: 'notification', data: message});
+					try {
+						for(let i = lastMessageIndex + 1; i <= length; i++) {
+							const message = processMessage(messageArray[i]);
+							console.log(message.text);
+							if(message) {
+								if(message.text.includes(username)) {
+									chrome.runtime.sendMessage({type: 'notification', data: message});
+								}
 							}
 						}
 					}
+					catch(err) {
+						// continue
+					}
 				}
-				catch(err) {
-					// continue
-				}
+				lastMessage = messageArray[length];
 			}
-			lastMessage = messageArray[length];
-		}
-		catch(err) {
-			console.log(err);
+			catch(err) {
+				console.log(err);
+			}
 		}
 	}, CHAT_PROCESS_INTERVAL);
 }
@@ -93,8 +101,6 @@ function processMessage(element) {
 		return null;
 	}
 }
-
-
 
 function loadChat(selector, callback) {
 	window.setTimeout(function() {
